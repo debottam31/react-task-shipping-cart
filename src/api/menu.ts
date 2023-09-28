@@ -11,6 +11,10 @@ export type MenuItem = {
   imgUrl?: string;
 };
 
+export type CartItem = MenuItem & {
+  quantity: number;
+};
+
 export type MenuFilter = {
   label: string;
   id: string;

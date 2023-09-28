@@ -35,3 +35,17 @@ Requirements:
 Fix anything you find that you fill should be refactored.
 
 Be ready to discuss all of your choices and how things work.
+
+## Solution implementation
+
+- Cart UI and functionality has been implemented
+
+- Re-rendering of components:
+  The use of CartContext caused re-renders of components where useCart hook is used.
+  Details of the re-rendering:
+  As intended by React, the components which have subscribed to a context will always re-render whenever there is any change in the context values.
+  In our case, the we have used useCart hook, which returns the cart context values. This is why the component is re-renders whenever there is update in context values (which includes the addItem function)
+  The re-render assigns the updated addItem function to the click handler, and as its a dependency for the MenuItem component, the re-render is required. Preventing the recreation of the addItem function causes the add item functionality to fail.
+
+- (Suggestion): Absolute imports can be configured - updated tsconfig
+- (Fixed): Cart flyout CSS, added visibility style

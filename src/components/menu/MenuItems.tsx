@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../../contexts/CartContext";
 import styles from "./MenuItems.module.css";
 import { MenuItem as MenuItemType } from "../../api/menu";
@@ -47,7 +47,11 @@ const MenuCard = ({
   return (
     <div className={styles.item} onClick={() => onClick(menuItem)}>
       {menuItem.imgUrl ? (
-        <img src={menuItem.imgUrl} className={styles.image} />
+        <img
+          src={menuItem.imgUrl}
+          className={styles.image}
+          alt={menuItem.description}
+        />
       ) : (
         <div className={styles.image} />
       )}
