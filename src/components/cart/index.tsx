@@ -5,6 +5,7 @@ import { cls } from "../../utils";
 import { useOnClickOutside } from "../../hooks/use-onclick-outside";
 import { CartItem, useCart } from "../../contexts/CartContext";
 import { Button } from "../button/Button";
+import { createPortal } from "react-dom";
 
 export function CartItemComponent({
   cartItem,
@@ -96,36 +97,39 @@ export function Cart() {
       >
         <CartIcon />
       </button>
-      <div
-        ref={flyoutRef}
-        className={cls(styles.flyout, !isOpen && styles.closed)}
-      >
-        {cartItems ? (
-          Object.values(cartItems)?.map((item) => (
-            <CartItemComponent
-              key={item.item.name}
-              cartItem={item}
-              onCountChange={(newCount) => {
-                updateCount(item.item.name, newCount);
-              }}
-            />
-          ))
-        ) : (
-          <p>Your order is empty</p>
-        )}
-        <Button onClick={() => submit()}>
-          <div>
-            {totalPrice > 0 ? (
-              <>
-                <span>Place Order</span>
-                <span>${totalPrice}</span>
-              </>
-            ) : (
-              <span>Submit</span>
-            )}
-          </div>
-        </Button>
-      </div>
+      {createPortal(
+        <div
+          ref={flyoutRef}
+          className={cls(styles.flyout, !isOpen && styles.closed)}
+        >
+          {cartItems ? (
+            Object.values(cartItems)?.map((item) => (
+              <CartItemComponent
+                key={item.item.name}
+                cartItem={item}
+                onCountChange={(newCount) => {
+                  updateCount(item.item.name, newCount);
+                }}
+              />
+            ))
+          ) : (
+            <p>Your order is empty</p>
+          )}
+          <Button onClick={() => submit()}>
+            <div>
+              {totalPrice > 0 ? (
+                <>
+                  <span>Place Order</span>
+                  <span>${totalPrice}</span>
+                </>
+              ) : (
+                <span>Submit</span>
+              )}
+            </div>
+          </Button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
