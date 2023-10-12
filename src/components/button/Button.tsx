@@ -1,9 +1,10 @@
+import { ReactNode } from "react";
 import { cls } from "../../utils";
 import styles from "./Button.module.css";
 
 // Doesn't extend button props, even though it takes rest props
 type ButtonProps = {
-  children: string;
+  children: ReactNode;
   className?: string;
   onClick?: () => void;
 };

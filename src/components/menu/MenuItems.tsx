@@ -1,33 +1,36 @@
-import { useEffect, useState } from "react";
+import { useMemo, memo, useCallback } from "react";
 import { useCart } from "../../contexts/CartContext";
 import styles from "./MenuItems.module.css";
 import { MenuItem as MenuItemType } from "../../api/menu";
 
 type MenuListProps = {
   items: MenuItemType[];
-  selectedItem: string;
+  selectedFilter: string;
 };
 
-export function MenuItems({ items, selectedItem }: MenuListProps) {
-  const [filteredItems, setFilteredItems] = useState<MenuItemType[]>(items);
+export function MenuItems({ items, selectedFilter }: MenuListProps) {
   const { addItem } = useCart();
 
-  const handleSelected = (item: MenuItemType) => {
-    addItem(item);
-  };
+  const handleSelected = useCallback(
+    (item: MenuItemType) => {
+      addItem(item);
+    },
+    [addItem]
+  );
 
-  useEffect(() => {
-    if (!selectedItem || selectedItem === "all") return setFilteredItems(items);
-
-    setFilteredItems(
-      items.filter((item) => item.tags.some((tag) => tag === selectedItem))
+  const filteredItems2 = useMemo(() => {
+    if (selectedFilter === "all") {
+      return items;
+    }
+    return items.filter((item) =>
+      item.tags.some((tag) => tag === selectedFilter)
     );
-  }, [selectedItem, items]);
+  }, [items, selectedFilter]);
 
   return (
     <div className={styles.root}>
-      {filteredItems.map((item, idx) => (
-        <MenuCard
+      {filteredItems2.map((item, idx) => (
+        <MemoizedMenuCard
           key={item.name + idx}
           menuItem={item}
           onClick={handleSelected}
@@ -47,7 +50,11 @@ const MenuCard = ({
   return (
     <div className={styles.item} onClick={() => onClick(menuItem)}>
       {menuItem.imgUrl ? (
-        <img src={menuItem.imgUrl} className={styles.image} />
+        <img
+          src={menuItem.imgUrl}
+          className={styles.image}
+          alt={menuItem.name}
+        />
       ) : (
         <div className={styles.image} />
       )}
@@ -65,3 +72,5 @@ const MenuCard = ({
     </div>
   );
 };
+
+const MemoizedMenuCard = memo(MenuCard);

@@ -8,6 +8,7 @@
   text-decoration: none;
   display: inline-block;
   cursor: pointer;
+  width: 100%;
 }
 
 .root:hover {

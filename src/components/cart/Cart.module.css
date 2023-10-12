@@ -54,3 +54,17 @@
 .closed {
   opacity: 0;
 }
+
+.CartItemComponent {
+  display: flex;
+  width: 300px;
+  padding: 10px 6px;
+}
+
+.buttons {
+  display: flex;
+}
+
+.cartItemName {
+  flex: 1;
+}

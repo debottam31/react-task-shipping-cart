@@ -18,7 +18,6 @@ export const SkeletonLoader = ({
   ...rest
 }: SkeletonLoaderProps) => {
   const Component = as;
-  console.log({ Component });
   return (
     <Component
       className={styles.root}

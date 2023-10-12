@@ -1,18 +1,78 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { ReactComponent as CartIcon } from "../../assets/cart.svg";
 import styles from "./Cart.module.css";
 import { cls } from "../../utils";
 import { useOnClickOutside } from "../../hooks/use-onclick-outside";
-import { useCart } from "../../contexts/CartContext";
+import { CartItem, useCart } from "../../contexts/CartContext";
 import { Button } from "../button/Button";
-import { MenuItem } from "../../api/menu";
 
-type CartProps = {};
+export function CartItemComponent({
+  cartItem,
+  onCountChange,
+}: {
+  cartItem: CartItem;
+  onCountChange: (newVal: number) => void;
+}) {
+  const subtotal = useMemo(() => {
+    return cartItem.count * cartItem.item.price;
+  }, [cartItem.count, cartItem.item.price]);
 
-export function Cart(props: CartProps) {
+  return (
+    <li className={styles.CartItemComponent}>
+      {cartItem.item.imgUrl ? (
+        <img
+          src={cartItem.item.imgUrl}
+          alt={cartItem.item.name}
+          style={{
+            width: "20px",
+            height: "20px",
+          }}
+        />
+      ) : (
+        <></>
+      )}
+
+      <div className={styles.cartItemName}>
+        <span>{cartItem.item.name}</span>
+        <span>
+          <b>(${subtotal})</b>
+        </span>
+      </div>
+
+      <div className={styles.buttons}>
+        {cartItem.count > 1 ? (
+          <button
+            onClick={() => {
+              onCountChange(cartItem.count - 1);
+            }}
+            disabled={cartItem.count < 1}
+          >
+            -
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              onCountChange(cartItem.count - 1);
+            }}
+          >
+            Delete
+          </button>
+        )}
+        <span className="count">{cartItem.count}</span>
+        <button
+          onClick={() => {
+            onCountChange(cartItem.count + 1);
+          }}
+        >
+          +
+        </button>
+      </div>
+    </li>
+  );
+}
+
+export function Cart() {
   const [isOpen, setIsOpen] = useState(false);
-  const [items, setItems] = useState<MenuItem[]>([]);
-  const [count, setCount] = useState(0);
 
   const flyoutRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -24,34 +84,47 @@ export function Cart(props: CartProps) {
     clickCaptureIgnore: [triggerRef],
   });
 
-  const { items: cartItems, submit } = useCart();
-
-  useEffect(() => {
-    setItems(cartItems);
-    setCount(cartItems.length);
-  }, [cartItems]);
+  const { items: cartItems, submit, updateCount, totalPrice } = useCart();
 
   return (
     <div style={{ position: "relative" }}>
       <button
         className={styles.button}
-        disabled={!count}
+        disabled={!cartItems}
         onClick={() => setIsOpen((state) => !state)}
         ref={triggerRef}
       >
         <CartIcon />
-        <p>{count}</p>
       </button>
       <div
         ref={flyoutRef}
         className={cls(styles.flyout, !isOpen && styles.closed)}
       >
-        {count ? (
-          items?.map((item) => <li key={item.name}>{item.name}</li>)
+        {cartItems ? (
+          Object.values(cartItems)?.map((item) => (
+            <CartItemComponent
+              key={item.item.name}
+              cartItem={item}
+              onCountChange={(newCount) => {
+                updateCount(item.item.name, newCount);
+              }}
+            />
+          ))
         ) : (
           <p>Your order is empty</p>
         )}
-        <Button onClick={() => submit()}>Submit</Button>
+        <Button onClick={() => submit()}>
+          <div>
+            {totalPrice > 0 ? (
+              <>
+                <span>Place Order</span>
+                <span>${totalPrice}</span>
+              </>
+            ) : (
+              <span>Submit</span>
+            )}
+          </div>
+        </Button>
       </div>
     </div>
   );

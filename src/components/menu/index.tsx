@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styles from "./Menu.module.css";
 import { MenuFilters } from "./MenuFilters";
 import { MenuItems } from "./MenuItems";
@@ -8,7 +8,7 @@ import { MenuLoadingSkeleton } from "./MenuLoadingSkeleton";
 type MenuProps = {};
 
 export function MenuPage(props: MenuProps) {
-  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
   const [menuFilters, setMenuFilters] = useState<
     Awaited<ReturnType<(typeof api)["getMenuFilters"]>>
@@ -35,7 +35,9 @@ export function MenuPage(props: MenuProps) {
     };
   }, []);
 
-  const loading = !menuFilters?.length || !menuItems?.length;
+  const loading = useMemo(() => {
+    return !menuFilters?.length || !menuItems?.length;
+  }, [menuFilters?.length, menuItems?.length]);
 
   return (
     <div className={styles.root}>
@@ -46,9 +48,9 @@ export function MenuPage(props: MenuProps) {
         <>
           <MenuFilters
             menuFilters={menuFilters}
-            onSelected={(key) => setSelectedItem(key)}
+            onSelected={(key) => setSelectedFilter(key)}
           />
-          <MenuItems selectedItem={selectedItem} items={menuItems} />
+          <MenuItems selectedFilter={selectedFilter} items={menuItems} />
         </>
       )}
     </div>
