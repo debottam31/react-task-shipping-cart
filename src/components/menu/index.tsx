@@ -1,20 +1,17 @@
 import { useEffect, useState, useMemo } from "react";
 import styles from "./Menu.module.css";
 import { MenuFilters } from "./MenuFilters";
-import { MenuItems } from "./MenuItems";
+import { MemoizedMenuItems } from "./MenuItems";
 import * as api from "../../api/menu";
 import { MenuLoadingSkeleton } from "./MenuLoadingSkeleton";
+import { useMenuItems } from "../../contexts/MenuItemsContext";
 
-type MenuProps = {};
-
-export function MenuPage(props: MenuProps) {
+export function MenuPage() {
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const { addItemsToMenuItemsCatalog, items } = useMenuItems();
 
   const [menuFilters, setMenuFilters] = useState<
     Awaited<ReturnType<(typeof api)["getMenuFilters"]>>
-  >([]);
-  const [menuItems, setMenuItems] = useState<
-    Awaited<ReturnType<(typeof api)["getMenuItems"]>>
   >([]);
 
   useEffect(() => {
@@ -27,17 +24,21 @@ export function MenuPage(props: MenuProps) {
 
     api.getMenuItems().then((items) => {
       if (!isMounted) return;
-      setMenuItems(items);
+      addItemsToMenuItemsCatalog(items);
     });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [addItemsToMenuItemsCatalog]);
 
   const loading = useMemo(() => {
-    return !menuFilters?.length || !menuItems?.length;
-  }, [menuFilters?.length, menuItems?.length]);
+    return !menuFilters?.length || !Object.keys(items).length;
+  }, [items, menuFilters?.length]);
+
+  const itemsList = useMemo(() => {
+    return Object.values(items);
+  }, [items]);
 
   return (
     <div className={styles.root}>
@@ -50,7 +51,10 @@ export function MenuPage(props: MenuProps) {
             menuFilters={menuFilters}
             onSelected={(key) => setSelectedFilter(key)}
           />
-          <MenuItems selectedFilter={selectedFilter} items={menuItems} />
+          <MemoizedMenuItems
+            selectedFilter={selectedFilter}
+            items={itemsList}
+          />
         </>
       )}
     </div>

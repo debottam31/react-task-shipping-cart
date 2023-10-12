@@ -1,26 +1,16 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useMemo,
-  useCallback,
-} from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { MenuItem } from "../api/menu";
 
 type CartContextType = {
-  items: Record<string, CartItem>;
-  addItem: (item: MenuItem) => void;
+  cartItems: Record<string, number>;
   submit: () => void;
-  updateCount: (itemName: string, count: number) => void;
-  totalPrice: number;
+  updateCount: (itemName: string, newCount: number) => void;
 };
 
 const CartContext = createContext<CartContextType>({
-  items: {},
-  addItem: () => {},
+  cartItems: {},
   submit: () => {},
   updateCount: () => {},
-  totalPrice: 0,
 });
 
 type CartProviderProps = {
@@ -33,36 +23,18 @@ export interface CartItem {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const [items, setItems] = useState<Record<string, CartItem>>({});
-  // menuItems
-  // Record<itemName, count>
-
-  const addItem = useCallback((item: MenuItem) => {
-    return setItems((items) => {
-      if (!items[item.name]) {
-        items[item.name] = {
-          item: item,
-          count: 1,
-        };
-      } else {
-        items[item.name] = {
-          item: item,
-          count: items[item.name].count + 1,
-        };
-      }
-      return { ...items };
-    });
-  }, []);
+  const [cartItems, setCartItems] = useState<Record<string, number>>({});
 
   const updateCount = (itemName: string, count: number) => {
+    console.log("Entered updateCount", itemName, count)
     if (count > 0) {
-      setItems((items) => {
-        items[itemName].count = count;
+      setCartItems((items) => {
+        items[itemName] = count;
         return { ...items };
       });
     } else {
       // Remove upon count = 0
-      setItems((items) => {
+      setCartItems((items) => {
         delete items[itemName];
         return { ...items };
       });
@@ -72,21 +44,11 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   const submit = () => {
     console.log("submitting order");
     window.alert("Order Placed!");
-    setItems({});
+    setCartItems({});
   };
 
-  const totalPrice = useMemo(() => {
-    let sum = 0;
-    Object.values(items).forEach((item) => {
-      sum += item.count * item.item.price;
-    });
-    return sum;
-  }, [items]);
-
   return (
-    <CartContext.Provider
-      value={{ items, addItem, submit, updateCount, totalPrice }}
-    >
+    <CartContext.Provider value={{ cartItems, submit, updateCount }}>
       {children}
     </CartContext.Provider>
   );

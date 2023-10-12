@@ -37,9 +37,9 @@
 
 .flyout {
   position: absolute;
-  right: 0;
+  right: 8px;
+  top: 72px;
   /*align under the container */
-  top: 120%;
   padding: var(--spacing-2);
   border-radius: var(--border-radius-small);
   box-shadow: var(--shadow-medium);

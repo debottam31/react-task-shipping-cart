@@ -8,17 +8,17 @@ type MenuListProps = {
   selectedFilter: string;
 };
 
-export function MenuItems({ items, selectedFilter }: MenuListProps) {
-  const { addItem } = useCart();
+function MenuItems({ items, selectedFilter }: MenuListProps) {
+  const { cartItems, updateCount } = useCart();
 
   const handleSelected = useCallback(
     (item: MenuItemType) => {
-      addItem(item);
+      updateCount(item.name, (cartItems[item.name] || 0) + 1);
     },
-    [addItem]
+    [cartItems, updateCount]
   );
 
-  const filteredItems2 = useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (selectedFilter === "all") {
       return items;
     }
@@ -29,7 +29,7 @@ export function MenuItems({ items, selectedFilter }: MenuListProps) {
 
   return (
     <div className={styles.root}>
-      {filteredItems2.map((item, idx) => (
+      {filteredItems.map((item, idx) => (
         <MemoizedMenuCard
           key={item.name + idx}
           menuItem={item}
@@ -74,3 +74,4 @@ const MenuCard = ({
 };
 
 const MemoizedMenuCard = memo(MenuCard);
+export const MemoizedMenuItems = memo(MenuItems);

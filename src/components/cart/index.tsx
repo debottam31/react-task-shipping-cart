@@ -5,24 +5,29 @@ import { cls } from "../../utils";
 import { useOnClickOutside } from "../../hooks/use-onclick-outside";
 import { CartItem, useCart } from "../../contexts/CartContext";
 import { Button } from "../button/Button";
+import { createPortal } from "react-dom";
+import { useMenuItems } from "../../contexts/MenuItemsContext";
+import { MenuItem } from "../../api/menu";
 
 export function CartItemComponent({
-  cartItem,
+  menuItem,
   onCountChange,
+  count,
 }: {
-  cartItem: CartItem;
+  menuItem: MenuItem;
   onCountChange: (newVal: number) => void;
+  count: number;
 }) {
   const subtotal = useMemo(() => {
-    return cartItem.count * cartItem.item.price;
-  }, [cartItem.count, cartItem.item.price]);
+    return count * menuItem.price;
+  }, [count, menuItem.price]);
 
   return (
     <li className={styles.CartItemComponent}>
-      {cartItem.item.imgUrl ? (
+      {menuItem.imgUrl ? (
         <img
-          src={cartItem.item.imgUrl}
-          alt={cartItem.item.name}
+          src={menuItem.imgUrl}
+          alt={menuItem.name}
           style={{
             width: "20px",
             height: "20px",
@@ -33,35 +38,35 @@ export function CartItemComponent({
       )}
 
       <div className={styles.cartItemName}>
-        <span>{cartItem.item.name}</span>
+        <span>{menuItem.name}</span>
         <span>
           <b>(${subtotal})</b>
         </span>
       </div>
 
       <div className={styles.buttons}>
-        {cartItem.count > 1 ? (
+        {count > 1 ? (
           <button
             onClick={() => {
-              onCountChange(cartItem.count - 1);
+              onCountChange(count - 1);
             }}
-            disabled={cartItem.count < 1}
+            disabled={count < 1}
           >
             -
           </button>
         ) : (
           <button
             onClick={() => {
-              onCountChange(cartItem.count - 1);
+              onCountChange(count - 1);
             }}
           >
             Delete
           </button>
         )}
-        <span className="count">{cartItem.count}</span>
+        <span className="count">{count}</span>
         <button
           onClick={() => {
-            onCountChange(cartItem.count + 1);
+            onCountChange(count + 1);
           }}
         >
           +
@@ -84,7 +89,15 @@ export function Cart() {
     clickCaptureIgnore: [triggerRef],
   });
 
-  const { items: cartItems, submit, updateCount, totalPrice } = useCart();
+  const { cartItems, submit, updateCount } = useCart();
+  const { items } = useMenuItems();
+  console.log(cartItems);
+
+  const totalPrice = useMemo(() => {
+    return Object.keys(cartItems).reduce((acc, item) => {
+      return acc + cartItems[item] * items[item].price;
+    }, 0);
+  }, [cartItems, items]);
 
   return (
     <div style={{ position: "relative" }}>
@@ -96,36 +109,40 @@ export function Cart() {
       >
         <CartIcon />
       </button>
-      <div
-        ref={flyoutRef}
-        className={cls(styles.flyout, !isOpen && styles.closed)}
-      >
-        {cartItems ? (
-          Object.values(cartItems)?.map((item) => (
-            <CartItemComponent
-              key={item.item.name}
-              cartItem={item}
-              onCountChange={(newCount) => {
-                updateCount(item.item.name, newCount);
-              }}
-            />
-          ))
-        ) : (
-          <p>Your order is empty</p>
-        )}
-        <Button onClick={() => submit()}>
-          <div>
-            {totalPrice > 0 ? (
-              <>
-                <span>Place Order</span>
-                <span>${totalPrice}</span>
-              </>
-            ) : (
-              <span>Submit</span>
-            )}
-          </div>
-        </Button>
-      </div>
+      {createPortal(
+        <div
+          ref={flyoutRef}
+          className={cls(styles.flyout, !isOpen && styles.closed)}
+        >
+          {cartItems ? (
+            Object.keys(cartItems)?.map((itemName) => (
+              <CartItemComponent
+                key={itemName}
+                menuItem={items[itemName]}
+                onCountChange={(newCount) => {
+                  updateCount(itemName, newCount);
+                }}
+                count={cartItems[itemName]}
+              />
+            ))
+          ) : (
+            <p>Your order is empty</p>
+          )}
+          <Button onClick={() => submit()}>
+            <div>
+              {totalPrice > 0 ? (
+                <>
+                  <span>Place Order</span>
+                  <span>${totalPrice}</span>
+                </>
+              ) : (
+                <span>Submit</span>
+              )}
+            </div>
+          </Button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
